@@ -95,11 +95,11 @@
             <a-input v-model:value="formData.uri" />
           </a-form-item>
           <a-form-item label="接口类型">
-            <a-checkbox-group v-model:value="formData.interfaceType">
-              <a-checkbox value="0" name="interfaceType">Http</a-checkbox>
-              <a-checkbox value="1" name="interfaceType">Socket</a-checkbox>
-              <a-checkbox value="2" name="interfaceType">Webservice</a-checkbox>
-            </a-checkbox-group>
+            <a-radio-group v-model:value="formData.interfaceType">
+              <a-radio value="0">Http</a-radio>
+              <a-radio value="1">Socket</a-radio>
+              <a-radio value="2">Webservice</a-radio>
+            </a-radio-group>
           </a-form-item>
           <a-form-item label="状态">
             <a-switch v-model:checked="formData.state" :checkedValue="1"/>
@@ -137,23 +137,14 @@ const columns = [
   },
 ];
 
-interface DataItem {
-  id: number;
-  code: number;
-  name: string;
-  uri: string;
-  interfaceType: number;
-  state: number;
-}
-
-// const data: DataItem[] = [];
-// for (let i = 0; i < 100; i++) {
-//   data.push({
-//     key: i,
-//     name: `Edrward ${i}`,
-//     age: 32,
-//     address: `London Park no. ${i}`,
-//   });
+// 使用any方便，但是建议使用接口类型
+// interface DataItem {
+//   id: number;
+//   code: number;
+//   name: string;
+//   uri: string;
+//   interfaceType: string;
+//   state: number;
 // }
 
 export default defineComponent({
@@ -215,21 +206,21 @@ export default defineComponent({
       // axios.post("http://localhost:8081/interfaceCase/find2", JSON.stringify(params))
       // POST-JSON请求方式
       axios.post("/interfaceCase/find", params).then((response) => {
-        const datas: DataItem[] = [];
+        // 使用any方便，但是建议使用接口类型
+        // const datas: DataItem[] = [];
+        const datas: any[] = [];
         for (let data of response.data.content.list) {
-          console.log(data.interfaceType);
           datas.push({
             "id": data.id,
             "code": data.code, 
             "name": data.name,
             "uri": data.uri,
-            "interfaceType": data.interfaceType,
+            "interfaceType": String(data.interfaceType),  // 单选框不能识别数值（number），需要转化为字符串（string）
             "state": data.state
           })
         }
         // 更新接口测试用例列表
         interfaceCaseList.value = datas;
-        console.log(datas);
         // 非翻页，即表示查询，当前页要重置
         if (!pageEvent) {
           pagination.value.current = 1;
@@ -264,16 +255,6 @@ export default defineComponent({
     const modalVisible = ref<boolean>(false);
     const modalLoading = ref<boolean>(false);
     const formData = ref({});
-    // const formData: UnwrapRef<DataItem> = reactive({
-    //   id: 1,
-    //   code: 1,
-    //   name: "用例标题",
-    //   systemName: "系统名称测试",
-    //   iterationName: "迭代名称测试",
-    //   uri: "www.baidu.com",
-    //   interfaceType: "0",
-    //   state: "1",
-    // });
 
     /**
      * 点击“编辑”
