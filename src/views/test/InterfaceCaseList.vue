@@ -49,6 +49,7 @@
     <a-layout-content
       :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }"
     >
+      <!-- 列表 -->
       <a-table 
           :columns="columns" 
           :data-source="interfaceCaseList"
@@ -60,8 +61,8 @@
         >
         <template #edit>
           <a-space size="small">
-            <a>编辑</a>
-            <a>删除</a>
+            <a @click="edit">编辑</a>
+            <a @click="del">删除</a>
           </a-space>
         </template>
         <template >
@@ -72,15 +73,29 @@
           </div>
         </template>
       </a-table>
-
+      <!-- 表单 -->
+      <a-modal
+        title="编辑接口测试用例"
+        v-model:visible="modalVisible"
+        :confirm-loading="modalLoading"
+        ok-text="确认"
+        cancel-text="取消"
+        :closable="false"
+        @ok="save"
+      >
+        <p>{{ modalText }}</p>
+      </a-modal>
     </a-layout-content>
   </a-layout>
+  
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from "vue";
+import { defineComponent, onMounted, ref, createVNode } from "vue";
 import axios from "axios";
-import qs from 'qs';
+import { Modal } from 'ant-design-vue';
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
+// import qs from 'qs';
 
 const columns = [
   { title: '编号', width: 60, dataIndex: 'code', key: 'code', fixed: 'left' },
@@ -125,8 +140,13 @@ export default defineComponent({
   components: {},
   setup() {
 
-    // ************************* 变量区 *************************
+    // ***********************************************************
+    // ************************** 列表 ***************************
+    // ***********************************************************
 
+    /**
+     * 变量定义
+     */
     // 查询条件表单
     const queryForm = ref();
     // 接口用例列表
@@ -140,9 +160,9 @@ export default defineComponent({
     // 是否加载
     const loading = ref(true);
 
-    // ************************* 方法区 *************************
-
-    // 构建请求参数
+    /**
+     * 构建请求参数
+     */
     const getParams = () => {
       const params = {
         current: pagination.value.current,
@@ -211,17 +231,75 @@ export default defineComponent({
       handleQuery(true);
     };
 
-    // ************************* 生命周期函数 *************************
+    // ***********************************************************
+    // ************************** 表单 ***************************
+    // ***********************************************************
 
-    // 组件挂载后执行
+    /**
+     * 变量定义
+     */
+    // 显示内容（测试使用，无实际业务含义）
+    const modalText = ref<string>('Content of the modal');
+    // 对话框隐藏/显示控制
+    const modalVisible = ref<boolean>(false);
+    const modalLoading = ref<boolean>(false);
+
+    /**
+     * 点击“编辑”
+     */
+    const edit = () => {
+      modalVisible.value = true;
+    };
+
+    /**
+     * 编辑保存
+     */
+    const save = () => {
+      modalText.value = 'The modal will be closed after two seconds';
+      modalLoading.value = true;
+      setTimeout(() => {
+        modalVisible.value = false;
+        modalLoading.value = false;
+      }, 2000);
+    };
+    
+    /**
+     * 删除
+     */
+    const del = () => {
+      Modal.confirm({
+        title: '提醒',
+        icon: createVNode(ExclamationCircleOutlined),
+        content: '删除操作不可恢复，确认继续？',
+        okText: "确认",
+        cancelText: "取消",
+        onOk() {
+          return new Promise((resolve, reject) => {
+            setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
+          }).catch(() => console.log('Oops errors!'));
+        },
+        // onCancel() {},
+      });
+    };
+
+    // ***********************************************************
+    // ************************ 周期函数 *************************
+    // ***********************************************************
+
+    /**
+     * 组件挂载后执行查询，即初始化
+     */
     onMounted(() => {
       // 加载完毕后触发查询条件
       handleQuery();
     })
     
-    // ************************* 返回对象 *************************
+    // ***********************************************************
+    // ************************** 返回 ***************************
+    // ***********************************************************
     return {
-      // ------------ 变量 ---------------
+
+      // ------------ 列表 ---------------
       // 查询条件
       queryForm,
       // 接口测试用例清单
@@ -232,9 +310,20 @@ export default defineComponent({
       pagination,
       // 加载中
       loading,
-
-      // ------------ 方法 ------------
-      handleTableChange
+      // 翻页
+      handleTableChange,
+      // ------------ 表单 ------------
+      // 测试文本，无业务含义
+      modalText,
+      // 显示隐藏对话框控制变量
+      modalVisible,
+      modalLoading,
+      // 显示对话框
+      edit,
+      // 点击确认操作
+      save,
+      // 删除
+      del
     };
   }
 });
