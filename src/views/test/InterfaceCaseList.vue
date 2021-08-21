@@ -271,12 +271,18 @@ export default defineComponent({
      * 编辑保存
      */
     const save = () => {
-      modalText.value = 'The modal will be closed after two seconds';
       modalLoading.value = true;
-      setTimeout(() => {
-        modalVisible.value = false;
-        modalLoading.value = false;
-      }, 2000);
+      axios.post("/interfaceCase/save", formData.value).then((response) => {
+        const data = response.data;
+        // 判断是否更新成功
+        if (data.success) {
+          modalVisible.value = false;
+          modalLoading.value = false;
+
+          // 重新加载列表
+          handleQuery();
+        }
+      })
     };
     
     /**
