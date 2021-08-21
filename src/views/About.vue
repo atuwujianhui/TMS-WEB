@@ -1,5 +1,7 @@
 <template>
-  <div class="about">
-    <h1>This is an about page</h1>
-  </div>
+  <a-layout-content
+      :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }"
+    >
+    <h1>福建中测测试管理系统</h1>
+  </a-layout-content>
 </template>

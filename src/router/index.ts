@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import Home from '../views/Home.vue'
 import About from "../views/About.vue"
+import InterfaceCaseList from "../views/test/InterfaceCaseList.vue"
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -16,7 +17,12 @@ const routes: Array<RouteRecordRaw> = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     // component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
-  }
+  },
+  {
+    path: '/interfaceCaseList',
+    name: 'InterfaceCaseList',
+    component: InterfaceCaseList
+  },
 ]
 
 const router = createRouter({

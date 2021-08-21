@@ -42,7 +42,10 @@ export default defineComponent({
     const interfaceCaseList = ref();
 
     onMounted(() => {
-      axios.post("http://localhost:8888/findAllInterfaceCase").then(
+      axios.post("/findAllInterfaceCase", {
+        "currentPage": 1,
+        "pageSize": 2
+      }).then(
         (response) => {
           interfaceCaseList.value = response.data.datas;
         }
