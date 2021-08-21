@@ -59,10 +59,10 @@
           :scroll="{ x: 1500, y: 300 }"
           @change="handleTableChange"
         >
-        <template #edit>
+        <template #edit="{text, record}">
           <a-space size="small">
-            <a @click="edit">编辑</a>
-            <a @click="del">删除</a>
+            <a @click="edit(record)">编辑</a>
+            <a @click="del(id)">删除</a>
           </a-space>
         </template>
         <template >
@@ -73,7 +73,7 @@
           </div>
         </template>
       </a-table>
-      <!-- 表单 -->
+      <!-- 模式对话框 -->
       <a-modal
         title="编辑接口测试用例"
         v-model:visible="modalVisible"
@@ -83,15 +83,38 @@
         :closable="false"
         @ok="save"
       >
-        <p>{{ modalText }}</p>
+        <!-- 表单 -->
+        <a-form :model="formData" :label-col="{span: 4}" :wrapper-col="{span: 14}">
+          <a-form-item label="用例编号">
+            <a-input v-model:value="formData.code" />
+          </a-form-item>
+          <a-form-item label="用例标题">
+            <a-input v-model:value="formData.name" />
+          </a-form-item>
+          <a-form-item label="URI">
+            <a-input v-model:value="formData.uri" />
+          </a-form-item>
+          <a-form-item label="接口类型">
+            <a-checkbox-group v-model:value="formData.interfaceType">
+              <a-checkbox value="0" name="interfaceType">Http</a-checkbox>
+              <a-checkbox value="1" name="interfaceType">Socket</a-checkbox>
+              <a-checkbox value="2" name="interfaceType">Webservice</a-checkbox>
+            </a-checkbox-group>
+          </a-form-item>
+          <a-form-item label="状态">
+            <a-switch v-model:checked="formData.state" :checkedValue="1"/>
+            <!-- <a-switch :checkedValue="1"/> -->
+          </a-form-item>
+        </a-form>
       </a-modal>
+      
     </a-layout-content>
   </a-layout>
   
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, createVNode } from "vue";
+import { defineComponent, onMounted, ref, createVNode, reactive, toRaw, UnwrapRef } from "vue";
 import axios from "axios";
 import { Modal } from 'ant-design-vue';
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
@@ -118,8 +141,6 @@ interface DataItem {
   id: number;
   code: number;
   name: string;
-  systemName: string;
-  iterationName: string;
   uri: string;
   interfaceType: number;
   state: number;
@@ -196,12 +217,11 @@ export default defineComponent({
       axios.post("/interfaceCase/find", params).then((response) => {
         const datas: DataItem[] = [];
         for (let data of response.data.content.list) {
+          console.log(data.interfaceType);
           datas.push({
             "id": data.id,
             "code": data.code, 
             "name": data.name,
-            "systemName": "", // data.system.name,
-            "iterationName": "", //data.iteration.name,
             "uri": data.uri,
             "interfaceType": data.interfaceType,
             "state": data.state
@@ -243,14 +263,29 @@ export default defineComponent({
     // 对话框隐藏/显示控制
     const modalVisible = ref<boolean>(false);
     const modalLoading = ref<boolean>(false);
+    const formData = ref({});
+    // const formData: UnwrapRef<DataItem> = reactive({
+    //   id: 1,
+    //   code: 1,
+    //   name: "用例标题",
+    //   systemName: "系统名称测试",
+    //   iterationName: "迭代名称测试",
+    //   uri: "www.baidu.com",
+    //   interfaceType: "0",
+    //   state: "1",
+    // });
 
     /**
      * 点击“编辑”
      */
-    const edit = () => {
+    const edit = (record: any) => {
       modalVisible.value = true;
+      formData.value = record;
     };
-
+    
+    const onSubmit = () => {
+      console.log('submit!', toRaw(formData));
+    };
     /**
      * 编辑保存
      */
@@ -266,7 +301,7 @@ export default defineComponent({
     /**
      * 删除
      */
-    const del = () => {
+    const del = (id: any) => {
       Modal.confirm({
         title: '提醒',
         icon: createVNode(ExclamationCircleOutlined),
@@ -322,6 +357,8 @@ export default defineComponent({
       edit,
       // 点击确认操作
       save,
+      formData,
+      onSubmit,
       // 删除
       del
     };

@@ -49,4 +49,8 @@ export default defineComponent({
   background: #fff;
 }
 
+/* 修改表单字段标签名后面的英文冒号“:”为中文冒号“：” */
+.ant-form-item-label > label::after {
+    content: '：' !important;
+}
 </style>
