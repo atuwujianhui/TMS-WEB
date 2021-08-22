@@ -49,6 +49,7 @@
     <a-layout-content
       :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }"
     >
+      <a-button type="primary" @click="add">新增</a-button>
       <!-- 列表 -->
       <a-table 
           :columns="columns" 
@@ -102,7 +103,7 @@
             </a-radio-group>
           </a-form-item>
           <a-form-item label="状态">
-            <a-switch v-model:checked="formData.state" :checkedValue="1"/>
+            <a-switch v-model:checked="formData.state" :checkedValue="1" :unCheckedValue="0"/>
             <!-- <a-switch :checkedValue="1"/> -->
           </a-form-item>
         </a-form>
@@ -194,6 +195,9 @@ export default defineComponent({
       loading.value = true;
       // 清空接口测试用例列表
       interfaceCaseList.value = [];
+      if (!pageEvent) {
+        pagination.value.current = 1;
+      }
       // 获取请求参数
       const params = getParams()
       axios.defaults.headers.post['Content-Type'] = "application/json;charset=UTF-8";
@@ -209,6 +213,7 @@ export default defineComponent({
         // 使用any方便，但是建议使用接口类型
         // const datas: DataItem[] = [];
         const datas: any[] = [];
+        // 非翻页，即表示查询，当前页要重置
         for (let data of response.data.content.list) {
           datas.push({
             "id": data.id,
@@ -221,10 +226,7 @@ export default defineComponent({
         }
         // 更新接口测试用例列表
         interfaceCaseList.value = datas;
-        // 非翻页，即表示查询，当前页要重置
-        if (!pageEvent) {
-          pagination.value.current = 1;
-        }
+        // 列表总记录数
         pagination.value.total = response.data.content.total;
         // 加载完成
         loading.value = false;
@@ -257,11 +259,19 @@ export default defineComponent({
     const formData = ref({});
 
     /**
+     * 点击“新增”
+     */
+    const add = () => {
+      modalVisible.value = true;
+      queryForm.value = {};
+    }
+    /**
      * 点击“编辑”
      */
     const edit = (record: any) => {
       modalVisible.value = true;
       formData.value = record;
+      console.log(record);
     };
     
     const onSubmit = () => {
@@ -280,7 +290,7 @@ export default defineComponent({
           modalLoading.value = false;
 
           // 重新加载列表
-          handleQuery();
+          handleQuery(false);
         }
       })
     };
@@ -303,7 +313,6 @@ export default defineComponent({
         // onCancel() {},
       });
     };
-
     // ***********************************************************
     // ************************ 周期函数 *************************
     // ***********************************************************
@@ -341,6 +350,7 @@ export default defineComponent({
       modalVisible,
       modalLoading,
       // 显示对话框
+      add,
       edit,
       // 点击确认操作
       save,
@@ -353,7 +363,7 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
+<style>
 .ant-table-thead > tr > th, .ant-table-tbody > tr > td {
   padding: 5px 5px !important;
 }

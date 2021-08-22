@@ -84,12 +84,15 @@ export default defineComponent({
     const interfaceCaseList2 = reactive([] as any);
 
     onMounted(() => {
-      axios.post("/findAllInterfaceCase").then(
+      axios.post("/interfaceCase/find", {
+          current: 1,
+          pageSize: 10
+      }).then(
         (response) => {
           // 方法1：ref
-          interfaceCaseList.value = response.data.datas;
+          interfaceCaseList.value = response.data.content.list;
           // 方法2：reactive
-          interfaceCaseList2.push(...response.data.datas);
+          interfaceCaseList2.push(... response.data.content.list);
         }
       )
     })
