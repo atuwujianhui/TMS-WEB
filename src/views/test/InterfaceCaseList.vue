@@ -117,8 +117,8 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref, createVNode, reactive, toRaw, UnwrapRef } from "vue";
 import axios from "axios";
-import { Modal } from 'ant-design-vue';
-import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
+import { Modal, message } from "ant-design-vue";
+import { ExclamationCircleOutlined } from "@ant-design/icons-vue";
 // import qs from 'qs';
 
 const columns = [
@@ -214,14 +214,21 @@ export default defineComponent({
         // const datas: DataItem[] = [];
         const datas: any[] = [];
         // 非翻页，即表示查询，当前页要重置
-        for (let data of response.data.content.list) {
+        const data = response.data;
+        if (!data.success) {
+          message.error(data.message);
+          // 加载完成
+          loading.value = false;
+          return
+        }
+        for (let item of data.content.list) {
           datas.push({
-            "id": data.id,
-            "code": data.code, 
-            "name": data.name,
-            "uri": data.uri,
-            "interfaceType": String(data.interfaceType),  // 单选框不能识别数值（number），需要转化为字符串（string）
-            "state": data.state
+            "id": item.id,
+            "code": item.code, 
+            "name": item.name,
+            "uri": item.uri,
+            "interfaceType": String(item.interfaceType),  // 单选框不能识别数值（number），需要转化为字符串（string）
+            "state": item.state
           })
         }
         // 更新接口测试用例列表
@@ -287,11 +294,12 @@ export default defineComponent({
         // 判断是否更新成功
         if (data.success) {
           modalVisible.value = false;
-          modalLoading.value = false;
-
           // 重新加载列表
           handleQuery(false);
+        } else {
+          message.error(data.message);
         }
+        modalLoading.value = false;
       })
     };
     
