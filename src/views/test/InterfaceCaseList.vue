@@ -63,7 +63,7 @@
         <template #edit="{text, record}">
           <a-space size="small">
             <a @click="edit(record)">编辑</a>
-            <a @click="del(id)">删除</a>
+            <a @click="del(record.id)">删除</a>
           </a-space>
         </template>
         <template >
@@ -226,8 +226,8 @@ export default defineComponent({
         }
         // 更新接口测试用例列表
         interfaceCaseList.value = datas;
-        // 列表总记录数
-        pagination.value.total = response.data.content.total;
+        // 更新列表总记录数
+        pagination.value.total = parseInt(response.data.content.total);
         // 加载完成
         loading.value = false;
       }
@@ -306,9 +306,16 @@ export default defineComponent({
         okText: "确认",
         cancelText: "取消",
         onOk() {
-          return new Promise((resolve, reject) => {
-            setTimeout(Math.random() > 0.5 ? resolve : reject, 1000);
-          }).catch(() => console.log('Oops errors!'));
+          axios.delete("/interfaceCase/delete/" + id).then((response) => {
+            const data = response.data;
+            // 判断是否更新成功
+            if (data.success) {
+              modalVisible.value = false;
+              modalLoading.value = false;
+              // 重新加载列表
+              handleQuery(false);
+            }
+          });
         },
         // onCancel() {},
       });
