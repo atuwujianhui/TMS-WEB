@@ -49,8 +49,19 @@
     <a-layout-content
       :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }"
     >
-      <a-button type="primary" @click="add">新增</a-button>
-      <!-- 列表 -->
+      <!-- 查询条件表单 -->
+      <a-form layout="inline" :model="queryForm">
+        <a-form-item>
+          <a-input v-model:value="queryForm.name" placeholder="用例名称"></a-input>
+        </a-form-item>
+        <a-form-item>
+          <a-space size="small">
+            <a-button type="primary" @click="query">查询</a-button>
+            <a-button type="primary" @click="add">新增</a-button>
+          </a-space>
+        </a-form-item>
+      </a-form>
+      <!-- 查询结果列表 -->
       <a-table 
           :columns="columns" 
           :data-source="interfaceCaseList"
@@ -83,6 +94,7 @@
         cancel-text="取消"
         :closable="false"
         @ok="save"
+        :maskClosable="false"
       >
         <!-- 表单 -->
         <a-form :model="formData" :label-col="{span: 4}" :wrapper-col="{span: 14}">
@@ -119,7 +131,7 @@ import { defineComponent, onMounted, ref, createVNode, reactive, toRaw, UnwrapRe
 import axios from "axios";
 import { Modal, message } from "ant-design-vue";
 import { ExclamationCircleOutlined } from "@ant-design/icons-vue";
-// import qs from 'qs';
+import { Tool } from "@/utils/tool";
 
 const columns = [
   { title: '编号', width: 60, dataIndex: 'code', key: 'code', fixed: 'left' },
@@ -162,6 +174,7 @@ export default defineComponent({
      */
     // 查询条件表单
     const queryForm = ref();
+    queryForm.value = {};
     // 接口用例列表
     const interfaceCaseList = ref();
     // 分页
@@ -181,7 +194,7 @@ export default defineComponent({
         current: pagination.value.current,
         pageSize: pagination.value.pageSize,
         // TODO: 查询条件，待扩展
-        // otherParam: queryForm.value.name
+        name: (queryForm.value.name ? queryForm.value.name : null)
       };
 
       return params;
@@ -190,7 +203,7 @@ export default defineComponent({
     /**
      * 数据查询
      **/
-    const handleQuery = (pageEvent = false) => {
+    const query = (pageEvent = false) => {
       // 正在加载标志
       loading.value = true;
       // 清空接口测试用例列表
@@ -248,7 +261,7 @@ export default defineComponent({
       pagination.value.current = page.current;
       pagination.value.pageSize = page.pageSize;
       // 触发分页查询
-      handleQuery(true);
+      query(true);
     };
 
     // ***********************************************************
@@ -270,20 +283,16 @@ export default defineComponent({
      */
     const add = () => {
       modalVisible.value = true;
-      queryForm.value = {};
     }
     /**
      * 点击“编辑”
      */
     const edit = (record: any) => {
       modalVisible.value = true;
-      formData.value = record;
+      formData.value = Tool.copy(record);
       console.log(record);
     };
-    
-    const onSubmit = () => {
-      console.log('submit!', toRaw(formData));
-    };
+
     /**
      * 编辑保存
      */
@@ -295,7 +304,7 @@ export default defineComponent({
         if (data.success) {
           modalVisible.value = false;
           // 重新加载列表
-          handleQuery(false);
+          query(false);
         } else {
           message.error(data.message);
         }
@@ -321,7 +330,7 @@ export default defineComponent({
               modalVisible.value = false;
               modalLoading.value = false;
               // 重新加载列表
-              handleQuery(false);
+              query(false);
             }
           });
         },
@@ -337,7 +346,7 @@ export default defineComponent({
      */
     onMounted(() => {
       // 加载完毕后触发查询条件
-      handleQuery();
+      query();
     })
     
     // ***********************************************************
@@ -364,13 +373,16 @@ export default defineComponent({
       // 显示隐藏对话框控制变量
       modalVisible,
       modalLoading,
-      // 显示对话框
-      add,
-      edit,
-      // 点击确认操作
-      save,
+      // 表单数据
       formData,
-      onSubmit,
+      // 查询
+      query,
+      // 新增
+      add,
+      // 编辑
+      edit,
+      // 保存（新增/编辑）
+      save,
       // 删除
       del
     };
